@@ -20,6 +20,7 @@ class WikiPages(object):
 		self.titles = title_string
 	
 	def get_all_info(self):
+		self.get_plain_text()
 		y = self.get_categories()
 		y = self.get_birthplace()
 		return y
@@ -34,8 +35,16 @@ class WikiPages(object):
 		return self.actors
 
 	def get_plain_text(self):
-		text = self._wiki_query({ 'prop': 'extracts', 'titles': self.titles})
-		return true
+		dump = self._wiki_query({ 'prop': 'extracts', 'titles': self.titles})
+		for elem in dump:
+			for page_id, content in elem['pages'].iteritems():
+				if 'extract' in content:
+					self.actors[str((content['title']))].self_info += pp.get_sentences(content['extract'])
+		#sentences = text.split('.')
+		#for x in sentences:
+		#	if pp.keep_sentence(x) > -1:
+		#		self.actors
+		return True
 		
 	def get_infobox(self):
 		info = self._wiki_query({
