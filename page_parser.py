@@ -1,13 +1,26 @@
 from pyparsing import nestedExpr
+from constants import *
 
-CATEGORY_WORDS = ["descent", "origin", "latin"]
-MAIN_TEXT_WORDS = ["descent", "origin", "latin", "born", "raised", "mother", "father", "parent", "latino", "latina"]
 
 def keep_category(category):
-	for x in CATEGORY_WORDS:
+	for x in LA_ETHNICITIES:
 		if x in category:
-			return True
-	return False
+			if ((x == "latino" or x == "latina") and ("hispanic" in category)):
+				continue
+			return True, True, "latino"
+	for x in LA_COUNTRIES:
+		if x in category:
+			return True, False, "latino"
+	for x in NOTED_ETHNICITIES:
+		if x in category:
+			return True, False, "noted"
+	for x in NON_LA_ETHNICITIES:
+		if x in category:
+			return True, False, "non_latino"
+	for x in PLACE_WORDS + DESCENT_WORDS + ["latino", "latina", "hispanic"]:
+		if x in category:
+			return True, False, "other"
+	return False, False, ""
 
 def get_birthplace(raw_text):
 	index = raw_text.find("birth_place")
@@ -58,35 +71,43 @@ def clean_text(txt):
 		x_outer += 1
 	return str_out		
 
-def get_sentences(text):
-	#TODO: make sure this is necessary
-	sentences = text.split(".")
-	sentences_out = []
-	for x in sentences:
-		sentence_tmp = ""
-		if keep_sentence(x) > -1:
-			idx = 0
-			while idx < len(x):
-				if x[idx] == '<':
-					idx += 1
-					while True:
-						if x[idx] == '>':
-							idx += 1
-							break
-						idx += 1
-				else:
-					sentence_tmp += x[idx]
-					idx += 1
-			sentences_out.append(sentence_tmp)
-	return sentences_out 
+def take_out_angle_brackets(x):
+	sentence_tmp = ""
+	i = 0
+	while i < len(x):
+		if x[i] == '<':
+			i += 1
+			while True:
+				if x[i] == '>':
+					i += 1
+					break
+				i += 1
+		else:
+			sentence_tmp += x[i]
+			i += 1
+	return sentence_tmp
 
 def keep_sentence(raw_sentence):
-	for x in  MAIN_TEXT_WORDS:
+	for x in LA_ETHNICITIES:
 		idx = raw_sentence.find(x)
 		if idx > -1:
-#			print "YES"
-#			print raw_sentence
-#			print idx
-			return idx
-	return -1
-#return txt.rsplit('|', 1)[-1]
+			if ((x == "latino" or x == "latina") and ("hispanic" in raw_sentence)):
+				continue
+			return idx, True, "latino"
+	for x in LA_COUNTRIES:
+		idx = raw_sentence.find(x)
+		if idx > -1:
+			return idx, False, "latino"
+	for x in NOTED_ETHNICITIES:
+		idx = raw_sentence.find(x)
+		if idx > -1:
+			return idx, False, "noted"
+	for x in NON_LA_ETHNICITIES:
+		idx = raw_sentence.find(x)
+		if idx > -1:
+			return idx, False, "non_latino"
+	for x in PLACE_WORDS + DESCENT_WORDS + ["latino", "latina", "hispanic"]:
+		idx = raw_sentence.find(x)
+		if idx > -1:
+			return idx, False, "other"
+	return -1, False, ""

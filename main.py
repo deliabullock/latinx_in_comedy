@@ -1,22 +1,29 @@
-import wikipedia_utils as wiki
 import pprint
+import movieinfo
 
-def transform_names(raw_names):
-	split_names = raw_names.split(", ")
-	for x in range(len(split_names)):
-		split_names[x] = split_names[x].strip()#.replace(" ", "_")
-	return split_names
+def display_actors(actors):
+	for actor in actors:
+		print '\t' + actor.name
+		print '\t\tBirthplace:\t' + actor.birthplace
+		print '\t\tLatino:\t' + str(actor.la_ethnicity)
+		if len(actor.tags) != 0:
+			print '\t\tWiki Tags:' 
+		for x, content in actor.tags.iteritems():
+			print '\t\t\t' + x
+			for y in content:
+				print '\t\t\t\t' + y
+		if len(actor.self_info) != 0:
+			print '\t\tWiki info:'		
+		for x, content in actor.self_info.iteritems():
+			print '\t\t\t' + x		
+			for y in content:
+				print '\t\t\t\t' + y
+		print "\n"
 
 def main():
-	actor_names = "Jackie Cruz, Stephanie Beatriz, Laura Gomez, Elizabeth Rodriguez, Dascha Polanco"
-	pages = wiki.WikiPages(transform_names(actor_names))
-	actors = pages.get_all_info()
-	for actor in actors:
-		print actors[actor].birthplace
-		for x in actors[actor].tags:
-			print x		
-		for x in actors[actor].self_info:
-			print x		
+	movie = movieinfo.MovieInfo("tmp movie title")
+	display_actors(movie.actors)
+	#actors = pages.determine_latino()
 
 if __name__ == '__main__':
       main()
