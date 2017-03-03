@@ -1,7 +1,6 @@
 import requests
 import pprint
 import json
-import actor
 import page_parser as pp
 
 API_URL = 'http://en.wikipedia.org/w/api.php'

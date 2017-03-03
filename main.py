@@ -23,7 +23,6 @@ def display_actors(actors):
 def main():
 	movie = movieinfo.MovieInfo("tmp movie title")
 	display_actors(movie.actors)
-	#actors = pages.determine_latino()
 
 if __name__ == '__main__':
       main()
