@@ -4,8 +4,9 @@ import json
 import page_parser as pp
 import xml.etree.ElementTree as et
 
-FILE_NAME = '../oldcsv/orig_2.xml'
+FILE_NAME = '../oldcsv/orig.xml'
 FILE_NAME_2 = '../oldcsv/orig_2.xml'
+PREFIX = '{urn:schemas-microsoft-com:office:spreadsheet}'
 
 class XMLfile(object):
 
@@ -29,22 +30,20 @@ class XMLfile(object):
 			return e
 
 		r = tree.getroot()
-		worksheets = r.findall('{urn:schemas-microsoft-com:office:spreadsheet}Worksheet')
+		worksheets = r.findall(PREFIX + 'Worksheet')
 		for worksheet in worksheets:
-			name = worksheet.attrib['{urn:schemas-microsoft-com:office:spreadsheet}Name']
+			name = worksheet.attrib[PREFIX + 'Name']
 			if (name == 'Master List' or name == "1920's"):
 				print (name)
 				continue
-			table = worksheet.find('{urn:schemas-microsoft-com:office:spreadsheet}Table')
-			rows = table.findall('{urn:schemas-microsoft-com:office:spreadsheet}Row')
+			table = worksheet.find(PREFIX + 'Table')
+			rows = table.findall(PREFIX + 'Row')
 			for r in rows[3:]:
 				count = 0
 				name  = ""
-				for cell in r.findall('{urn:schemas-microsoft-com:office:spreadsheet}Cell'):
+				for cell in r.findall(PREFIX + 'Cell'):
 					indx = get_index(cell)
 					name2 = get_text(cell)
-					print ("Name: " + name2)
-					print ("Indx: " + indx)
 					if name != "":
 						if indx == "" or indx == "5":
 							txt = get_text(cell)
@@ -65,11 +64,21 @@ class XMLfile(object):
 					if count > 3:
 						break
 			self.final_table = table
+			if str(PREFIX + 'ExpandedRowCount') in self.final_table.attrib:
+				self.final_table.attrib[PREFIX + 'ExpandedRowCount'] = str(int(self.final_table.attrib[PREFIX + 'ExpandedRowCount']) + len(self.actors.keys()))
 			self.tree = tree
 
 	def write_new_movie(self):
+		first_row = True
 		for name, actor in self.actors.iteritems():
 			row = et.Element('ss:Row', attrib={'ss:AutoFitHeight': '0'})
+			if(first_row):
+				cell = et.Element('ss:Cell', attrib={'ss:Index': '2'})
+				data = et.Element('ss:Data', attrib={'ss:Type': 'String'})
+				data.text = self.title
+				cell.append(data)
+				row.append(cell)
+				first_row = False
 			cell = et.Element('ss:Cell', attrib={'ss:Index': '4'})
 			data = et.Element('ss:Data', attrib={'ss:Type': 'String'})
 			data.text = name
@@ -79,12 +88,12 @@ class XMLfile(object):
 		self.tree.write(FILE_NAME_2)
 
 def get_index(cell):
-	if ('{urn:schemas-microsoft-com:office:spreadsheet}Index' in cell.attrib):
-		return cell.attrib['{urn:schemas-microsoft-com:office:spreadsheet}Index']				
+	if (str(PREFIX + 'Index') in cell.attrib):
+		return cell.attrib[PREFIX + 'Index']				
 	return ""	
 
 def get_text(cell):
-	datas = cell.findall('{urn:schemas-microsoft-com:office:spreadsheet}Data')
+	datas = cell.findall(PREFIX + 'Data')
 	if len(datas) > 0:
 		data = datas[0] 
 		t = data.text
